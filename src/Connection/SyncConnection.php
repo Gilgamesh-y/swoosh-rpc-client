@@ -3,8 +3,6 @@
 namespace Src\RPCClient\Connection;
 
 use Swoole\Coroutine\Client;
-use Src\RPC\RpcProtocol;
-use Src\RPC\Packet\Encoder;
 
 class SyncConnection extends Connection
 {
@@ -13,8 +11,8 @@ class SyncConnection extends Connection
         $connection = new Client(SWOOLE_SOCK_TCP);
 
         $connection->set($this->client->getSetting());
-        if (!$connection->connect($this->client->getHost(), $this->client->getPort())) {
-            throw new \Exception('rpc client连接'.$this->client->getHost().':'.$this->client->getPort().'失败');
+        if (!$connection->connect($this->server_stub->getServerStubHost(), $this->server_stub->getServerStubPort())) {
+            throw new \Exception('rpc server_stub连接'.$this->server_stub->getServerStubHost().':'.$this->server_stub->getServerStubPort().'失败');
         }
 
         $this->connection = $connection;

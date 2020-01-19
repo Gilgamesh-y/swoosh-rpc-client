@@ -2,20 +2,66 @@
 
 namespace Src\RPCClient\Connection;
 
+use Src\RPCServer\Connections\ConsulConnection;
 use Swoole\Coroutine\Client;
 
 class CoConnection extends Connection
 {
-    public function makeConnection()
+    /**
+     * The service's remote host
+     *
+     * @var string
+     */
+    protected $target_host = '127.0.0.1';
+
+    /**
+     * The service's remote port
+     *
+     * @var integer
+     */
+    protected $target_port = 80;
+
+    public function makeConnection(string $service)
     {
         $connection = new Client(SWOOLE_SOCK_TCP);
-
+        if ($this->server_stub instanceof ConsulConnection) {
+            $this->selectRemoteService($service);
+        }
         $connection->set($this->client->getSetting());
-        if (!$connection->connect($this->client->getHost(), $this->client->getPort())) {
-            throw new \Exception('rpc client连接'.$this->client->getHost().':'.$this->client->getPort().'失败');
+        if (!$connection->connect($this->target_host, $this->target_port)) {
+            throw new \Exception('rpc server_stub连接'.$this->target_host.':'.$this->target_port.'失败');
         }
 
         $this->connection = $connection;
+    }
+
+    /**
+     * Get catalog of the service
+     * @return array
+     */
+    public function getRemoteServices($service_name)
+    {
+        $services = $this->server_stub->services($service_name, true);
+        if (empty($services)) {
+            throw new \Exception('rpc server_stub has not find the services named '.$service_name);
+        }
+
+        return $services;
+    }
+
+    /**
+     * Select a remote service
+     *
+     * @param int|string $service_name
+     * @return void
+     */
+    public function selectRemoteService($service_name)
+    {
+        $services = $this->getRemoteServices($service_name);
+        $key = array_rand($services);
+        $service = $services[$key];
+        $this->target_host = $service['ServiceAddress'];
+        $this->target_port = $service['ServicePort'];
     }
 
     public function close()

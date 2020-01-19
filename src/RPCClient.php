@@ -36,8 +36,9 @@ class RPCClient
     public function __construct()
     {
         $connection = App::get('rpc_connection');
-        $connection = $connection->init($this);
-        $connection->makeConnection();
+        $connection = $connection->init($this, App::get('rpc_stub'));
+
+        return $connection;
     }
 
     /**
