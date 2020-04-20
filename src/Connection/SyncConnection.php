@@ -2,7 +2,7 @@
 
 namespace Src\RPCClient\Connection;
 
-use Swoole\Coroutine\Client;
+use Swoole\Client;
 
 class SyncConnection extends Connection
 {
